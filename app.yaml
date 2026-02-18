@@ -1,0 +1,17 @@
+runtime: python39
+
+env: standard
+
+entrypoint: gunicorn -b :$PORT app:app
+
+env_variables:
+  # 将你的 API keys 和 secrets 设置为环境变量
+  # 注意：不要在此文件中暴露真实密钥
+  # 请使用 Cloud Secret Manager 来管理敏感信息
+  MONTHLY_API_LIMIT: "500"
+
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  target_cpu_utilization: 0.65
+  target_throughput_utilization: 0.65

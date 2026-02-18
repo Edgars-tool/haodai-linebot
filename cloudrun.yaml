@@ -1,0 +1,24 @@
+# Google Cloud Run 部署配置
+# 使用方式：
+# gcloud run deploy haodai-linebot --source . --region asia-east1 --allow-unauthenticated --set-env-vars LINE_CHANNEL_ACCESS_TOKEN=xxx,LINE_CHANNEL_SECRET=xxx,PERPLEXITY_API_KEY=xxx,USER_A_ID=xxx,USER_B_ID=xxx
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: haodai-linebot
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "10"
+        autoscaling.knative.dev/minScale: "1"
+    spec:
+      containers:
+      - image: gcr.io/YOUR-PROJECT-ID/haodai-linebot
+        ports:
+        - containerPort: 5000
+        env:
+        - name: PORT
+          value: "5000"
+        # 其他环境变量由 Cloud Run 接受的参数设置
