@@ -357,6 +357,61 @@ gcloud run logs read haodai-linebot --limit 100
 
 ---
 
+## 🗂️ 工作流能力整理（WHO-46）
+
+本段落保留這輪 Obsidian / vault / workflow 能力回填紀錄，後續細項已拆到 WHO-54 / WHO-55 追蹤。
+
+### 這輪已完成
+
+- [x] 建立 `local-note-workflow` skill
+- [x] 將 note workflow 補成可直接生成 Markdown 的完整流程
+- [x] 在 note workflow 內建輸出搬移能力
+- [x] 在 note workflow 內建來源封存能力
+- [x] 在 note workflow 內建成功後刪除來源能力
+- [x] 建立 `obsidian-vault-workflow` skill
+- [x] 補齊 Obsidian Vault MCP server 的直接操作說明
+- [x] 新增 `search_notes` 檔名搜尋
+- [x] 新增 `search_note_content` 內容搜尋
+- [x] 新增 `create_folder` 建資料夾能力
+- [x] 新增 `move_note` 搬移 / 改名能力
+- [x] 新增 `delete_note` 刪除能力
+- [x] 同步更新 vault server README
+- [x] 同步更新 obsidian vault skill 說明
+- [x] 驗證 `obsidian-vault-server` 可成功編譯
+
+### 目前已具備的能力
+
+#### 內容處理線
+
+- `local-note-workflow`
+- 可整理原始文字成可回收 Markdown
+- 可在同一流程中移動輸出、封存來源、刪除來源
+
+#### Vault 全操控線
+
+- `obsidian-vault-workflow`
+- 可列出 vault 項目
+- 可依檔名搜尋
+- 可依內容關鍵字搜尋
+- 可讀取筆記
+- 可寫入 / 覆蓋筆記
+- 可追加內容
+- 可快速 capture 到 inbox
+- 可建立資料夾
+- 可搬移 / 改名
+- 可刪除
+- 可操作 daily note 流程
+
+### 後續可補（改在 WHO-54 / WHO-55）
+
+- [x] 內容搜尋結果排序與摘要品質提升
+- [x] frontmatter / tag 搜尋
+- [ ] archive / trash 型操作，降低直接刪除風險
+- [ ] 多檔批次操作
+- [x] 更白話的使用手冊
+
+---
+
 ## 問題反饋
 
 如有問題，請：
@@ -366,4 +421,4 @@ gcloud run logs read haodai-linebot --limit 100
 
 ---
 
-**最後更新：2026 年 2 月 19 日**
+**最後更新：2026 年 4 月 12 日**
