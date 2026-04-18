@@ -310,6 +310,8 @@ haodai-linebot/
 ├── Procfile             # Heroku 設定
 ├── cloudrun.yaml        # Google Cloud Run 設定
 ├── README.md            # 本檔案
+├── DEPLOYMENT_GUIDE.md  # 部署指南
+├── ROLLBACK_GUIDE.md    # Rollback 與中斷回復方案
 ├── tasks.json           # 任務資料（執行時生成）
 └── api_usage.json       # API 額度記錄（執行時生成）
 ```
@@ -363,6 +365,7 @@ gcloud run logs read haodai-linebot --limit 100
 1. 查看 [README](#) 的除錯段落
 2. 檢查應用程式日誌
 3. 測試環境變數是否正確設置
+4. 若在搬遷或重建過程中出錯，參考 [ROLLBACK_GUIDE.md](./ROLLBACK_GUIDE.md)
 
 ---
 
