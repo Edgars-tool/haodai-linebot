@@ -297,6 +297,19 @@ POST /reminders-mark-sent
 
 ---
 
+## 📋 每日進場順序
+
+每天開始工作時，依照固定的 4 步驟快速上手：
+
+1. **`小結`** — 確認今天和明天的重點任務
+2. **`今天待辦`** — 查看完整任務清單
+3. **`誰還沒做`** — 處理需要跟進的項目
+4. 進入當日主要工作區
+
+詳細說明請參考 [DAILY_CHECKLIST.md](./DAILY_CHECKLIST.md)。
+
+---
+
 ## 📁 文件結構
 
 ```
@@ -310,6 +323,7 @@ haodai-linebot/
 ├── Procfile             # Heroku 設定
 ├── cloudrun.yaml        # Google Cloud Run 設定
 ├── README.md            # 本檔案
+├── DAILY_CHECKLIST.md   # 每日進場檢查順序
 ├── tasks.json           # 任務資料（執行時生成）
 └── api_usage.json       # API 額度記錄（執行時生成）
 ```
