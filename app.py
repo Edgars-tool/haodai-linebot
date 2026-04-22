@@ -34,8 +34,44 @@ PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions"
 
 conversation_history = {}
 
-if not PERPLEXITY_API_KEY:
-    logger.warning("PERPLEXITY_API_KEY not set - AI responses will fail")
+def preflight_check():
+    """Boot-time preflight: fail fast if required config is missing or state files are unreadable.
+
+    Call this once at module level so both ``python app.py`` and gunicorn worker
+    startup abort before any HTTP traffic is accepted.
+    """
+    required_vars = [
+        "LINE_CHANNEL_ACCESS_TOKEN",
+        "LINE_CHANNEL_SECRET",
+        "PERPLEXITY_API_KEY",
+    ]
+    for var in required_vars:
+        if not os.environ.get(var):
+            logger.critical("PREFLIGHT FAILED: required environment variable '%s' is not set", var)
+            raise SystemExit(f"Missing required environment variable: {var}")
+
+    for filepath in (TASKS_FILE, API_USAGE_FILE):
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    json.load(f)
+            except (json.JSONDecodeError, IOError) as exc:
+                logger.critical("PREFLIGHT FAILED: state file '%s' is unreadable: %s", filepath, exc)
+                raise SystemExit(f"State file unreadable: {filepath}") from exc
+        else:
+            try:
+                test_file = filepath + ".preflight_test"
+                with open(test_file, "w", encoding="utf-8") as f:
+                    json.dump([], f)
+                os.remove(test_file)
+            except IOError as exc:
+                logger.critical("PREFLIGHT FAILED: cannot initialise state file '%s': %s", filepath, exc)
+                raise SystemExit(f"Cannot write state file: {filepath}") from exc
+
+    logger.info("Preflight checks passed")
+
+
+preflight_check()
 
 handler = None
 configuration = None
