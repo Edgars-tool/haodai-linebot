@@ -29,7 +29,7 @@ def check_state_file(path: Path) -> list[str]:
 
     try:
         raw = path.read_text(encoding='utf-8')
-        json.loads(raw or 'null')
+        json.loads(raw)
     except Exception as exc:  # noqa: BLE001
         errors.append(f'unreadable state file: {path.name} ({exc})')
 
