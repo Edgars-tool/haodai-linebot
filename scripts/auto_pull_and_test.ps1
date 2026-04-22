@@ -7,7 +7,7 @@ Set-Location $RepoRoot
 
 Write-Host '[auto-pull] syncing main branch'
 git fetch origin main
-git checkout main
+git checkout -B main origin/main
 git pull --ff-only origin main
 
 Write-Host '[auto-pull] installing dependencies'
