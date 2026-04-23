@@ -380,4 +380,12 @@ gcloud run logs read haodai-linebot --limit 100
 
 ---
 
-**最後更新：2026 年 2 月 19 日**
+**最後更新：2026 年 4 月 12 日**
+
+---
+
+## 📁 工作區
+
+本專案為正式專案，統一落點：`C:\Users\EdgarsTool\Projects\haodai-linebot`
+
+詳見 [WORKSPACE.md](./WORKSPACE.md)。
