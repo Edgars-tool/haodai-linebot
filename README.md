@@ -330,6 +330,67 @@ haodai-linebot/
 
 ---
 
+## 🚦 啟動前檢查 (Preflight)
+
+應用程式在接受任何 HTTP 流量前會自動執行啟動前檢查。若任何必要條件未滿足，程序將立即終止並在日誌中顯示清楚的錯誤訊息。
+
+### 必要環境變數
+
+| 環境變數 | 缺少時的錯誤訊息 |
+|---------|----------------|
+| `LINE_CHANNEL_ACCESS_TOKEN` | `Missing required environment variable: LINE_CHANNEL_ACCESS_TOKEN` |
+| `LINE_CHANNEL_SECRET` | `Missing required environment variable: LINE_CHANNEL_SECRET` |
+| `PERPLEXITY_API_KEY` | `Missing required environment variable: PERPLEXITY_API_KEY` |
+
+### 執行時狀態檔案
+
+| 檔案 | 檢查內容 |
+|------|---------|
+| `tasks.json` | 若已存在，驗證 JSON 格式是否正確；若不存在，驗證當前目錄有寫入權限 |
+| `api_usage.json` | 同上 |
+
+### 本地診斷
+
+```bash
+# 測試環境變數是否正確設置（任何缺少的變數都會顯示在輸出中）
+LINE_CHANNEL_ACCESS_TOKEN=xxx \
+  LINE_CHANNEL_SECRET=yyy \
+  PERPLEXITY_API_KEY=zzz \
+  python app.py
+```
+
+啟動成功時日誌會顯示：
+```
+INFO:app:Preflight checks passed
+INFO:app:LINE credentials configured successfully
+INFO:app:All handlers registered successfully
+```
+
+### Cloud Run 診斷
+
+若 Cloud Run 部署後服務無法啟動（狀態顯示 `Container failed to start`），可查看啟動日誌：
+
+```bash
+gcloud run logs read haodai-linebot --region asia-east1 --limit 50
+```
+
+在日誌中搜尋 `PREFLIGHT FAILED` 以定位具體問題。修正後重新部署：
+
+```bash
+# 使用 env-vars-file 避免密鑰出現在 shell 歷史記錄中（推薦）
+# 先建立 env.yaml（請勿提交此檔案到版本控制）：
+#   LINE_CHANNEL_ACCESS_TOKEN: "你的token"
+#   LINE_CHANNEL_SECRET: "你的secret"
+#   PERPLEXITY_API_KEY: "你的api_key"
+gcloud run deploy haodai-linebot \
+  --source . \
+  --region asia-east1 \
+  --allow-unauthenticated \
+  --env-vars-file env.yaml
+```
+
+---
+
 ## 🐛 除錯
 
 ### 檢查日誌
