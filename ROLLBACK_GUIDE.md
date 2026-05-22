@@ -27,11 +27,10 @@
 
 遇到以下任一情況，**立即停止操作，不要繼續往下執行**：
 
-- ❌ 環境變數填入後，`/callback` 端點回應 500 或 403
-- ❌ 發訊息給 Bot 後超過 30 秒無回應
+- ❌ LINE Developers Console 的 Webhook Verify 失敗，或實際發訊息給 Bot 後超過 30 秒仍無回應
+- ⚠️ 若手動測試 `/callback`，請注意此端點只接受 `POST`：簽章錯誤或請求格式不正確通常會回 `400`，用瀏覽器直接 `GET` 測試通常會回 `405`；這兩種情況本身不應直接視為 Bot 故障
 - ❌ Cloud Run 部署狀態卡在「進行中」超過 15 分鐘
-- ❌ `tasks.json` 讀取後內容為空或格式異常（非 JSON 陣列）
-- ❌ LINE Developers Console 的 Webhook Verify 失敗
+- ❌ `tasks.json` 格式異常（非 JSON 陣列），或在原本應有資料時內容突然歸零且不符合預期
 - ❌ Notion 同步連續失敗 3 次以上（日誌出現 Notion 相關錯誤）
 - ❌ `api_usage.json` 計數出現負數或異常大數值
 
@@ -68,7 +67,7 @@ gcloud run services update-traffic haodai-linebot \
 1. 開啟 Cloud Run Console → 選擇服務 → 「編輯並部署新修訂版本」
 2. 進入「變數與密鑰」
 3. 逐一核對並更正環境變數
-4. 部署新版本後確認 `/callback` 回傳 200
+4. 部署新版本後，到 LINE Developers Console 按「Verify」確認 Webhook 驗證成功，或實際傳訊息測試 Bot 是否有回應
 
 > ⚠️ 如果不確定原本的值，先到舊的 Revision 查看設定，再對照修正。
 
@@ -186,7 +185,7 @@ gcloud run services update-traffic haodai-linebot \
 ```
 □ 已備份 tasks.json 和 api_usage.json
 □ 已記錄目前的 Cloud Run Revision 版本號
-□ 已截圖目前所有環境變數（不含機密值，僅記錄變數名稱和是否有填寫）
+□ 已備份目前所有環境變數設定；非機密資訊可截圖或複製到安全位置，機密值需以密碼管理器、加密筆記等方式安全備份（可分開保存），且至少能在 rollback 時完整恢復原值
 □ 已確認 LINE Developers 目前的 Webhook URL
 □ 已確認目前 Bot 可以正常收發訊息（操作前最後一次測試）
 □ 已確認 Notion 同步在操作前是正常的（若有使用 Notion）
