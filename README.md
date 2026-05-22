@@ -362,7 +362,7 @@ gcloud run logs read haodai-linebot --limit 100
 ## 問題反饋
 
 如有問題，請：
-1. 查看 [README](#) 的除錯段落
+1. 查看 [README](#-除錯) 的除錯段落
 2. 檢查應用程式日誌
 3. 測試環境變數是否正確設置
 4. 若在搬遷或重建過程中出錯，參考 [ROLLBACK_GUIDE.md](./ROLLBACK_GUIDE.md)
