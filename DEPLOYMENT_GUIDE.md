@@ -29,12 +29,12 @@ https://github.com/love1795/haodai-linebot
 2. 登入你的 GitHub 帳號
 3. **File → Clone Repository**
 4. 貼上你的倉庫 URL：`https://github.com/love1795/haodai-linebot`
-5. 選擇本機位置（例如 `C:\Users\Windows10-JS\Downloads`）
+5. 選擇本機位置（例如 `C:\Users\EdgarsTool\Projects`）
 6. 點擊 **Clone**
 
 現在你在本機有一個 GitHub 資料夾了！
 
-7. 將 `Desktop/haodai-linebot/` 下的所有檔案（除了 `.git` 資料夾）複製到這個剛才 clone 的資料夾
+7. 將 `C:\Users\EdgarsTool\Projects\haodai-linebot\` 下的所有檔案（除了 `.git` 資料夾）複製到這個剛才 clone 的資料夾
 8. 回到 GitHub Desktop
 9. 你會看到很多檔案被標記為「Changes」
 10. 在左下角輸入 commit message：`Initial commit: Add LINE Bot code`
@@ -49,7 +49,7 @@ https://github.com/love1795/haodai-linebot
 
 ```bash
 # 進入你的項目目錄
-cd C:\Users\Windows10-JS\Desktop\haodai-linebot
+cd C:\Users\EdgarsTool\Projects\haodai-linebot
 
 # 初始化 Git
 git init
