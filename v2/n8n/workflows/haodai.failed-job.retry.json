@@ -1,0 +1,180 @@
+{
+  "name": "haodai.failed-job.retry",
+  "active": false,
+  "versionId": "haodai-v2-foundation-failed-job-retry-1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "Every 5 minutes: retry transient failed reminder/summary jobs. Policy 5m/15m/60m then dead. No AI Agent."
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {},
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## haodai.failed-job.retry\n\n**Status:** inactive by default\n\n### Retry policy\n1. +5 minutes\n2. +15 minutes\n3. +60 minutes\n4. mark `dead` (no user spam)\n\n### Retryable\n- LINE 5xx / timeout\n- internal service unavailable\n- transient Supabase errors\n\n### Not retryable\n- invalid recipient\n- auth revoked\n- schema errors\n- missing secrets\n\n### Env vars\n- `ASSISTANT_API_BASE_URL`\n- `N8N_CALLBACK_TOKEN`",
+        "height": 440,
+        "width": 400
+      },
+      "id": "note-overview",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-320, 0]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "schedule-5m",
+      "name": "Every 5 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{($env.ASSISTANT_API_BASE_URL || 'http://placeholder.local:8787') + '/v1/internal/jobs/retryable'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-internal-token",
+              "value": "={{$env.N8N_CALLBACK_TOKEN || 'replace_with_local_n8n_token'}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-retryable",
+      "name": "List Retryable Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 200],
+      "notes": "Output: { jobs: [{ id, kind, retry_count, max_retries, payload }] }"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "jobs",
+        "options": {}
+      },
+      "id": "split-jobs",
+      "name": "Loop Jobs",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [520, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "under-max",
+              "leftValue": "={{$json.retry_count}}",
+              "rightValue": "={{$json.max_retries}}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-under-max",
+      "name": "Under Max Retries?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [780, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.ASSISTANT_API_BASE_URL || 'http://placeholder.local:8787') + '/v1/internal/jobs/retry'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-internal-token",
+              "value": "={{$env.N8N_CALLBACK_TOKEN || 'replace_with_local_n8n_token'}}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"job_id\": \"{{$json.id}}\",\n  \"kind\": \"{{$json.kind}}\"\n}",
+        "options": {}
+      },
+      "id": "http-retry",
+      "name": "Retry Job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1040, 120]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.ASSISTANT_API_BASE_URL || 'http://placeholder.local:8787') + '/v1/internal/jobs/dead'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-internal-token",
+              "value": "={{$env.N8N_CALLBACK_TOKEN || 'replace_with_local_n8n_token'}}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"job_id\": \"{{$json.id}}\",\n  \"notify_admin\": true\n}",
+        "options": {}
+      },
+      "id": "http-dead",
+      "name": "Mark Dead + Notify Admin",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1040, 320]
+    }
+  ],
+  "connections": {
+    "Every 5 Minutes": {
+      "main": [[{ "node": "List Retryable Jobs", "type": "main", "index": 0 }]]
+    },
+    "List Retryable Jobs": {
+      "main": [[{ "node": "Loop Jobs", "type": "main", "index": 0 }]]
+    },
+    "Loop Jobs": {
+      "main": [[{ "node": "Under Max Retries?", "type": "main", "index": 0 }]]
+    },
+    "Under Max Retries?": {
+      "main": [
+        [{ "node": "Retry Job", "type": "main", "index": 0 }],
+        [{ "node": "Mark Dead + Notify Admin", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}

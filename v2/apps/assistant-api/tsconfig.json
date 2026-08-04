@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@haodai/domain": ["../../packages/domain/src/index.ts"],
+      "@haodai/action-contracts": ["../../packages/action-contracts/src/index.ts"],
+      "@haodai/line-events": ["../../packages/line-events/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../../packages/action-contracts" },
+    { "path": "../../packages/domain" },
+    { "path": "../../packages/line-events" }
+  ]
+}
