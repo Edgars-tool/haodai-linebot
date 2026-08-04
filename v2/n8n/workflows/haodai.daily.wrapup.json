@@ -1,0 +1,201 @@
+{
+  "name": "haodai.daily.wrapup",
+  "active": false,
+  "versionId": "haodai-v2-foundation-daily-wrapup-1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "Every 15 minutes: build deterministic daily summary via internal API and push once per user/day. No AI Agent."
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {},
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## haodai.daily.wrapup\n\n**Status:** inactive by default\n\n**Purpose:** Evening wrap-up for users whose `daily_summary_time` is due.\n\n### Env vars\n- `ASSISTANT_API_BASE_URL`\n- `N8N_CALLBACK_TOKEN`\n\n### Input\nSchedule tick\n\n### Output\n`{ user_id, status, should_push }`\n\n### Rules\n- Asia/Taipei\n- Once per user per day (idempotency in API)\n- Deterministic text, no LLM required\n- Empty days may skip push",
+        "height": 400,
+        "width": 400
+      },
+      "id": "note-overview",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-320, 0]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule-15m",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{($env.ASSISTANT_API_BASE_URL || 'http://placeholder.local:8787') + '/v1/internal/users/summary-due?timezone=Asia/Taipei'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-internal-token",
+              "value": "={{$env.N8N_CALLBACK_TOKEN || 'replace_with_local_n8n_token'}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-users-due",
+      "name": "Users Summary Due",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 200],
+      "notes": "Expected output: { users: [{ user_id, timezone }] }"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "users",
+        "options": {}
+      },
+      "id": "split-users",
+      "name": "Loop Users",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [520, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.ASSISTANT_API_BASE_URL || 'http://placeholder.local:8787') + '/v1/internal/summary/daily'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-internal-token",
+              "value": "={{$env.N8N_CALLBACK_TOKEN || 'replace_with_local_n8n_token'}}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_id\": \"{{$json.user_id}}\",\n  \"timezone\": \"{{$json.timezone || 'Asia/Taipei'}}\",\n  \"idempotency_key\": \"summary:{{$json.user_id}}:{{$now.toFormat('yyyy-MM-dd')}}\"\n}",
+        "options": {}
+      },
+      "id": "http-build-summary",
+      "name": "Build Daily Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [780, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "should-push",
+              "leftValue": "={{$json.should_push}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-should-push",
+      "name": "Should Push?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1040, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{($env.ASSISTANT_API_BASE_URL || 'http://placeholder.local:8787') + '/v1/internal/line/push'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-internal-token",
+              "value": "={{$env.N8N_CALLBACK_TOKEN || 'replace_with_local_n8n_token'}}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to_user_id\": \"{{$json.user_id}}\",\n  \"messages\": [{ \"type\": \"text\", \"text\": {{JSON.stringify($json.message_text)}} }],\n  \"delivery_key\": \"summary-push:{{$json.user_id}}:{{$json.date}}\"\n}",
+        "options": {}
+      },
+      "id": "http-push-summary",
+      "name": "Push Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1300, 120]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "skipped_no_push"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "skip-push",
+      "name": "Skip Push",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1300, 320]
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": {
+      "main": [[{ "node": "Users Summary Due", "type": "main", "index": 0 }]]
+    },
+    "Users Summary Due": {
+      "main": [[{ "node": "Loop Users", "type": "main", "index": 0 }]]
+    },
+    "Loop Users": {
+      "main": [[{ "node": "Build Daily Summary", "type": "main", "index": 0 }]]
+    },
+    "Build Daily Summary": {
+      "main": [[{ "node": "Should Push?", "type": "main", "index": 0 }]]
+    },
+    "Should Push?": {
+      "main": [
+        [{ "node": "Push Summary", "type": "main", "index": 0 }],
+        [{ "node": "Skip Push", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}

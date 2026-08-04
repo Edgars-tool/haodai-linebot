@@ -52,3 +52,14 @@ replit.nix
 
 # 日志
 *.log
+
+# Node / TypeScript (v2 foundation)
+node_modules/
+**/node_modules/
+**/dist/
+coverage/
+*.tsbuildinfo
+.pnpm-store/
+
+# ESLint / Vitest caches
+.eslintcache
